@@ -315,7 +315,3 @@ Feature Addition
 - `yarn test` to test changes
 - `yarn bundle` to bundle files
 
-#### Testing
-Test cases are written in jasmine and run by karma
-Test file : /test/test_input.js
-To run test : `yarn test`
