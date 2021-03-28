@@ -1,5 +1,5 @@
 /**
- * react-number-format - 4.4.4
+ * react-number-format - 4.5.0
  * Author : Sudhanshu Yadav
  * Copyright (c) 2016, 2021 to Sudhanshu Yadav, released under the MIT license.
  * https://github.com/s-yadav/react-number-format
@@ -270,7 +270,9 @@
         afterDecimal = _splitDecimal.afterDecimal,
         hasNagation = _splitDecimal.hasNagation;
 
-    var roundedDecimalParts = parseFloat("0.".concat(afterDecimal || '0')).toFixed(scale).split('.');
+    var floatValue = parseFloat("0.".concat(afterDecimal || '0'));
+    var floatValueStr = afterDecimal.length <= scale ? floatValue.toString() : floatValue.toFixed(scale);
+    var roundedDecimalParts = floatValueStr.split('.');
     var intPart = beforeDecimal.split('').reverse().reduce(function (roundedStr, current, idx) {
       if (roundedStr.length > idx) {
         return (Number(roundedStr[0]) + Number(current)).toString() + roundedStr.substring(1, roundedStr.length);
@@ -1136,8 +1138,9 @@
         var formattedValue = this.formatInput(inputValue) || '';
         var numAsString = this.removeFormatting(formattedValue);
         var valueObj = this.getValueObject(formattedValue, numAsString);
+        var isChangeAllowed = isAllowed(valueObj);
 
-        if (!isAllowed(valueObj)) {
+        if (!isChangeAllowed) {
           formattedValue = lastValue;
         }
 
@@ -1147,7 +1150,10 @@
           inputValue: inputValue,
           input: el
         });
-        props.onChange(e);
+
+        if (isChangeAllowed) {
+          props.onChange(e);
+        }
       }
     }, {
       key: "onBlur",

@@ -8,6 +8,7 @@ import {
   simulateKeyInput,
   simulateFocusEvent,
   simulateBlurEvent,
+  getCustomEvent,
   shallow,
   mount
 } from '../test_util';
@@ -227,6 +228,14 @@ describe('NumberFormat as input', () => {
     expect(wrapper.state().value).toEqual('+1 (777) 777 7 77 US');
   });
 
+  it('should update value if whole content is replaced by new number', () => {
+    const wrapper = shallow(<NumberFormat format="+1 (###) ### # ## US" allowEmptyFormatting/>);
+
+    wrapper.find('input').simulate('change', getCustomEvent('012345678', 20, 20));
+
+    expect(wrapper.find('input').prop('value')).toEqual('+1 (012) 345 6 78 US');
+  });
+
   it('should allow replacing all characters with number when formatting is present', () => {
     const format = '+1 (###) ### # ## US';
     const wrapper = shallow(<NumberFormat format={format} value="+1 (123) 456 7 89 US" mask="_"/>);
@@ -394,6 +403,13 @@ describe('NumberFormat as input', () => {
     const span = wrapper.find('span')
     expect(span.props()).toEqual({className: 'foo', children: '1234'})
   })
+  
+  it('should not fire onChange when change is not allowed via the isAllowed prop', () => {
+      const spy = jasmine.createSpy('onChange')
+      const wrapper = shallow(<NumberFormat value={1234} className="foo" isAllowed={() => false} onChange={spy}/>);
+      simulateKeyInput(wrapper.find('input'), '5678', 2, 3)
+      expect(spy).not.toHaveBeenCalled();
+  })
 
   describe('Test masking', () => {
     it('should allow mask as string', () => {
@@ -425,5 +441,40 @@ describe('NumberFormat as input', () => {
         shallow(<NumberFormat format="#### #### ####" mask={['D', 'D', 'M', '1', '2', 'Y', 'Y', 'Y']}/>)
       }).toThrow()
     })
+
+    it('should show the right decimal values based on the decimal scale provided', () =>{
+      class WrapperComponent extends React.Component {
+        constructor() {
+          super ();
+          this.state = {
+            value: '123.123'
+          };
+        }
+
+        onInputChange = inputObj => {
+            this.setState({value: inputObj.value})
+        }
+
+        render() {
+          return (
+            <NumberFormat
+              name="numberformat"
+              id="formatted-numberformat-input"
+              value={this.state.value}
+              onValueChange={this.onInputChange}
+              decimalScale={18}
+              thousandSeparator
+              prefix={"$"}
+              isNumericString
+            />
+          )
+        }
+      }
+
+      const wrapper = mount(<WrapperComponent />)
+      expect(wrapper.find('input').instance().value).toEqual('$123.123')
+      wrapper.setState({value: '123.1234'})
+      expect(wrapper.find('input').instance().value).toEqual('$123.1234')
+    })
   })
-});
+}); 

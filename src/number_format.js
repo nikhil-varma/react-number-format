@@ -651,7 +651,7 @@ class NumberFormat extends React.Component {
       value.length > lastValue.length
       || !value.length ||
       start === end ||
-      (selectionStart === 0 && selectionEnd === lastValue.length) ||
+      (start === 0 && end === lastValue.length) ||
       (selectionStart === leftBound && selectionEnd === rightBound)
     ) {
       return value;
@@ -755,14 +755,17 @@ class NumberFormat extends React.Component {
     const numAsString = this.removeFormatting(formattedValue);
 
     const valueObj = this.getValueObject(formattedValue, numAsString);
+    const isChangeAllowed = isAllowed(valueObj)
 
-    if (!isAllowed(valueObj)) {
+    if (!isChangeAllowed) {
       formattedValue = lastValue;
     }
 
     this.updateValue({ formattedValue, numAsString, inputValue, input: el });
 
-    props.onChange(e);
+    if(isChangeAllowed) {
+      props.onChange(e);
+    }
   }
 
   onBlur(e: SyntheticInputEvent) {
